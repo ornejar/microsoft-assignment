@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: web-server
+        image: httpd:2.4  # Apache HTTP Server image
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /usr/local/apache2/htdocs/
+          name: web-content
+      volumes:
+      - name: web-content
+        configMap:
+          name: web-app-content
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-app-content
+data:
+  index.html: |
+    <html>
+      <body>
+        <h1>Hi Microsoft! welcome to the Kubernetes Web Server!</h1>
+        <p>This is served by Apache running in a Kubernetes Pod.</p>
+      </body>
+    </html>
