@@ -77,8 +77,7 @@ resource "aws_instance" "web_server" {
 
   # Associate the instance with the public subnet and security group
   subnet_id              = aws_subnet.public.id
-  security_groups        = [aws_security_group.ec2_sg.name]
-
+  vpc_security_group_ids = [aws_security_group.ec2_sg.id] 
   # User data (optional) to run on instance startup
   user_data = <<-EOF
               #!/bin/bash
@@ -91,5 +90,37 @@ resource "aws_instance" "web_server" {
 
   tags = {
     Name = "WebServer"
+  }
+}
+
+# RDS Database instance in private subnet
+resource "aws_db_instance" "database" {
+  allocated_storage    = 20                        # Storage size in GB
+  storage_type         = "gp2"                     # General-purpose SSD
+  engine               = "mysql"                   # Database engine (e.g., MySQL)
+  engine_version       = "8.0"                     # MySQL version
+  instance_class       = "db.t2.micro"             # Free-tier eligible instance type
+  name                 = "mydatabase"              # Initial database name
+  username             = var.db_username           # Master username
+  password             = var.db_password           # Master password (ensure it's secure)
+  vpc_security_group_ids = [aws_security_group.rds_sg.id] # Attach RDS security group
+  db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
+
+  # Optional: Set automatic backups and retention period
+  backup_retention_period = 7
+  skip_final_snapshot     = true # Skip final snapshot on deletion
+
+  tags = {
+    Name = "MyDatabase"
+  }
+}
+
+# Subnet Group for RDS (required for RDS in a VPC)
+resource "aws_db_subnet_group" "rds_subnet_group" {
+  name       = "rds_subnet_group"
+  subnet_ids = [aws_subnet.private.id] # Place in the private subnet
+
+  tags = {
+    Name = "RDSSubnetGroup"
   }
 }

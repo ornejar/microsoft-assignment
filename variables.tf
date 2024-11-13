@@ -27,3 +27,14 @@ variable "private_subnet_cidr" {
   type        = string
   default     = "10.0.2.0/24"
 }
+
+variable "db_username" {
+  description = "Database username"
+  type        = string
+}
+
+variable "db_password" {
+  description = "Database password"
+  type        = string
+  sensitive   = true
+}
