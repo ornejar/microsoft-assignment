@@ -23,6 +23,18 @@ resource "aws_subnet" "private" {
   availability_zone = var.aws_availability_zone
 }
 
+# Second private subnet in a different AZ
+resource "aws_subnet" "private_2" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.3.0/24"  # Adjust the CIDR as needed
+  availability_zone = "us-west-2b"   # Ensure this is a different AZ from the first private subnet
+
+  tags = {
+    Name = "private-subnet-2"
+  }
+}
+
+
 # Internet Gateway
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
@@ -93,14 +105,39 @@ resource "aws_instance" "web_server" {
   }
 }
 
+# Security Group for RDS to allow access from EC2 instance
+resource "aws_security_group" "rds_sg" {
+  vpc_id = aws_vpc.main.id
+  name   = "rds_security_group"
+
+  # Inbound rule to allow MySQL access from EC2 instance's security group
+  ingress {
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ec2_sg.id] # Only allow traffic from EC2 security group
+  }
+
+  # Allow all outbound traffic (optional, default behavior for AWS)
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "rds-sg"
+  }
+}
+
 # RDS Database instance in private subnet
 resource "aws_db_instance" "database" {
   allocated_storage    = 20                        # Storage size in GB
   storage_type         = "gp2"                     # General-purpose SSD
   engine               = "mysql"                   # Database engine (e.g., MySQL)
-  engine_version       = "8.0"                     # MySQL version
+  engine_version       = "8.0.28"                     # MySQL version
   instance_class       = "db.t2.micro"             # Free-tier eligible instance type
-  name                 = "mydatabase"              # Initial database name
   username             = var.db_username           # Master username
   password             = var.db_password           # Master password (ensure it's secure)
   vpc_security_group_ids = [aws_security_group.rds_sg.id] # Attach RDS security group
@@ -118,9 +155,10 @@ resource "aws_db_instance" "database" {
 # Subnet Group for RDS (required for RDS in a VPC)
 resource "aws_db_subnet_group" "rds_subnet_group" {
   name       = "rds_subnet_group"
-  subnet_ids = [aws_subnet.private.id] # Place in the private subnet
-
+  subnet_ids = [aws_subnet.private.id, aws_subnet.private_2.id] # Add both private subnets
   tags = {
     Name = "RDSSubnetGroup"
   }
 }
+
+
