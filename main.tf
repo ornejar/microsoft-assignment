@@ -136,7 +136,7 @@ resource "aws_db_instance" "database" {
   allocated_storage    = 20                        # Storage size in GB
   storage_type         = "gp2"                     # General-purpose SSD
   engine               = "mysql"                   # Database engine (e.g., MySQL)
-  engine_version       = "8.0.28"                     # MySQL version
+  engine_version       = "8.0.32"                     # MySQL version
   instance_class       = "db.t2.micro"             # Free-tier eligible instance type
   username             = var.db_username           # Master username
   password             = var.db_password           # Master password (ensure it's secure)
