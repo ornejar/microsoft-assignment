@@ -148,6 +148,9 @@ This file defines variables to configure the infrastructure.
    ```bash
    terraform destroy
    ```
+   Type the DB username and password when Terraform ask
+   Terraform will display a list of resources to be destroyed. Review the list carefully to ensure all resources you want to delete are included.
+   Type yes when prompted to confirm.
 
 ## Notes
 
@@ -156,4 +159,77 @@ This file defines variables to configure the infrastructure.
 
 ---
 
-This README provides detailed setup and usage instructions for provisioning an AWS environment with Terraform. Let me know if you’d like further customization!
+## Bonus Task: Deploying the Web Application with Kubernetes
+
+As part of the bonus task, this project includes a Kubernetes deployment for the web application, using Minikube to set up a local Kubernetes cluster. The application is served by Apache (HTTP server) running in Kubernetes Pods and is exposed via a Kubernetes Service.
+
+### Prerequisites
+
+- **Minikube**: Install Minikube by following the [official documentation](https://minikube.sigs.k8s.io/docs/start/).
+- **kubectl**: Install `kubectl` to manage the Minikube cluster. You can download it from the [Kubernetes website](https://kubernetes.io/docs/tasks/tools/).
+
+### Folder Structure
+
+The Kubernetes configuration files are located in the `kubernetes/` folder:
+
+```
+kubernetes/
+├── deployment.yaml    # Defines the web server deployment in Kubernetes
+└── service.yaml       # Exposes the web server to external traffic
+```
+
+### Deployment Steps
+
+1. **Start Minikube**:
+   - Start a local Kubernetes cluster with Minikube:
+     ```bash
+     minikube start
+     ```
+
+2. **Apply the Kubernetes Configuration**:
+   - Navigate to the `kubernetes/` folder and apply the deployment and service YAML files:
+     ```bash
+     kubectl apply -f deployment.yaml
+     kubectl apply -f service.yaml
+     ```
+
+3. **Verify the Deployment**:
+   - Confirm that the Pods are running:
+     ```bash
+     kubectl get pods
+     ```
+   - Confirm that the Service is running and accessible:
+     ```bash
+     kubectl get svc web-app-service
+     ```
+
+4. **Access the Web Application**:
+   - Use Minikube to access the web application via the exposed service:
+     ```bash
+     minikube service web-app-service
+     ```
+   - This command will open the web app in your default browser, allowing you to test the deployment.
+
+### Configuration Details
+
+#### `deployment.yaml`
+
+- **Replicas**: Sets the number of replicas for the application.
+- **Container**: Uses the `httpd:2.4` image to serve an Apache web server.
+- **ConfigMap**: Provides custom HTML content for the application via a ConfigMap named `web-app-content`.
+
+#### `service.yaml`
+
+- **Type**: The service type is set to `NodePort` to expose the application externally.
+- **Ports**: Exposes the application on port 80.
+
+### Cleaning Up
+
+To stop the Minikube cluster and remove all resources:
+
+```bash
+minikube stop
+minikube delete
+```
+
+---
