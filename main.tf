@@ -137,7 +137,7 @@ resource "aws_db_instance" "database" {
   storage_type         = "gp2"                     # General-purpose SSD
   engine               = "mysql"                   # Database engine (e.g., MySQL)
   engine_version       = "8.0.32"                     # MySQL version
-  instance_class       = "db.t2.micro"             # Free-tier eligible instance type
+  instance_class       = "db.t3.micro"             # Free-tier eligible instance type
   username             = var.db_username           # Master username
   password             = var.db_password           # Master password (ensure it's secure)
   vpc_security_group_ids = [aws_security_group.rds_sg.id] # Attach RDS security group
